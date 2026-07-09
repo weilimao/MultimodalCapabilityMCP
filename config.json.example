@@ -1,0 +1,6 @@
+{
+  "relay_url": "http://127.0.0.1:18444/v1internal:generateContent",
+  "api_key": "sk-ant-9cd5fdbf9bf4109539272cf14ea643bb",
+  "default_model": "gemini-3.5-flash-extra-low",
+  "timeout": 60
+}

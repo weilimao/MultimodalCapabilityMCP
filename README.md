@@ -56,20 +56,27 @@ pip install -r requirements.txt
 ## 🚀 在客户端中注册 MCP 工具
 
 ### 💡 极速配置：AI 一键托管（强烈推荐）
-如果您当前正在与具有文件编辑/命令执行权限的 AI 助手（如 Claude Code, Windsurf, Cursor 等）对话，您可以直接将以下提示词复制发送给 AI，让它帮您一键全自动完成所有配置，免去手动查找路径与修改 JSON 的繁琐：
 
-> **AI 智能配置提示词：**
-> 
-> 帮我把当前项目一键配置为 Claude 的 MCP 服务：
-> 1. 自动寻找并读取您的本地 Claude 配置文件 `.claude.json`（Windows 通常在 `C:\Users\<当前用户名>\` 下，macOS 通常在用户主目录 `~/.claude.json`）；
-> 2. 在其中的 `mcpServers` 节点下，加入一个名为 `relay-image-analyzer` 的服务；
-> 3. `command` 字段指向本项目虚拟环境中的 Python 可执行文件路径（Windows 例如 `path/to/project/.venv/Scripts/python.exe`，macOS 例如 `path/to/project/.venv/bin/python`，如果使用 script 方式则配合 `-m mcp_relay_image_analyzer.server` 运行）；
-> 4. 支持以下两种密钥配置方式之一，加入到 `env` 环境变量中：
->    - **方式一（免 config.json，推荐用于 ccswitch 等集成工具）**：直接配置环境变量参数：
->      * `RELAY_URL`：您的多模态中继网关 API 地址（例如：`http://127.0.0.1:18444/v1internal:generateContent`）；
->      * `RELAY_API_KEY`：您的网关 API 鉴权密钥；
->      * `RELAY_MODEL`：要调用的视觉分析模型名称（如 `gemini-2.5-flash`）。
->    - **方式二**：加入 `MCP_IMAGE_ANALYZER_CONFIG` 并指向本项目根目录下的 `config.json` 绝对路径。
+如果您当前正在与具有文件编辑/命令执行权限的 AI 助手（如 Claude Code, Windsurf, Cursor 等）对话，您可以直接复制下方代码框中的提示词发送给 AI，让它帮您一键全自动完成所有配置，免去手动查找路径与修改 JSON 的繁琐：
+
+**AI 智能配置提示词（可点击右上角一键复制）：**
+
+```text
+请帮我把 mcp-relay-image-analyzer 项目一键配置为本地 Claude 的 MCP 服务：
+
+1. 检测并在我的系统中定位当前项目目录。如果当前还没有克隆该项目，请先将仓库克隆到本地合适位置，仓库地址为：https://github.com/weilimao/MultimodalCapabilityMCP.git ；
+2. 自动寻找并读取我的本地 Claude 配置文件（对于 Claude Code，Windows 通常在 C:\Users\<当前用户名>\.claude.json，macOS 在 ~/.claude.json；对于 Claude Desktop，Windows 通常在 C:\Users\<当前用户名>\AppData\Roaming\Claude\claude_desktop_config.json，macOS 在 ~/Library/Application Support/Claude/claude_desktop_config.json）；
+3. 在其中的 mcpServers 节点下，加入一个名为 relay-image-analyzer 的服务；
+4. 将 command 字段指向本项目虚拟环境中的 Python 可执行文件路径（Windows 例如 <项目绝对路径>/.venv/Scripts/python.exe，macOS/Linux 例如 <项目绝对路径>/.venv/bin/python，如果使用 script 方式则配合 -m mcp_relay_image_analyzer.server 运行）；
+5. 自动寻找并设置环境，支持以下两种密钥配置方式之一，加入到 env 环境变量中：
+   - 方式一（免 config.json，推荐）：直接配置以下环境变量参数：
+     * RELAY_URL：指定多模态中继网关 API 地址（例如：http://127.0.0.1:18444/v1internal:generateContent）；
+     * RELAY_API_KEY：指定您的中继网关 API 鉴权密钥（自动提取或询问我）；
+     * RELAY_MODEL：要调用的视觉分析模型名称（如 gemini-2.5-flash）。
+   - 方式二：在 env 中加入 MCP_IMAGE_ANALYZER_CONFIG 并指向项目根目录下的 config.json 绝对路径。
+```
+
+> 💡 **小贴士**：如果本项目成功帮您解决了多模态看图 400 报错的问题，欢迎顺手给本仓库点个 **Star ⭐️** 支持一下！
 
 ---
 

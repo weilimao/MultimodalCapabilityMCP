@@ -35,7 +35,11 @@ pip install -r requirements.txt
 ### 2. 配置本地中继密钥
 1. 复制配置文件模板：
    ```bash
+   # Windows 环境
    copy config.json.example config.json
+   
+   # macOS / Linux 环境
+   cp config.json.example config.json
    ```
 2. 打开并编辑 `config.json`，填入你的本地中继服务的 `api_key`：
    ```json
@@ -57,10 +61,15 @@ pip install -r requirements.txt
 > **AI 智能配置提示词：**
 > 
 > 帮我把当前项目一键配置为 Claude 的 MCP 服务：
-> 1. 在我的 Windows 用户目录下（通常是 `C:\Users\<当前用户名>\`），自动寻找并读取 Claude 配置文件 `.claude.json`；
+> 1. 自动寻找并读取您的本地 Claude 配置文件 `.claude.json`（Windows 通常在 `C:\Users\<当前用户名>\` 下，macOS 通常在用户主目录 `~/.claude.json`）；
 > 2. 在其中的 `mcpServers` 节点下，加入一个名为 `relay-image-analyzer` 的服务；
-> 3. `command` 字段指向本项目虚拟环境中的 Python 可执行文件路径（例如 `B:\GPT\mcp-relay-image-analyzer\.venv\Scripts\mcp-relay-image-analyzer.exe`，如果使用 script 方式则配合 `-m mcp_relay_image_analyzer.server` 和虚拟环境中的 `python.exe` 运行）；
-> 4. `env` 环境变量中加入 `MCP_IMAGE_ANALYZER_CONFIG` 并指向本项目根目录下的 `config.json` 绝对路径。
+> 3. `command` 字段指向本项目虚拟环境中的 Python 可执行文件路径（Windows 例如 `path/to/project/.venv/Scripts/python.exe`，macOS 例如 `path/to/project/.venv/bin/python`，如果使用 script 方式则配合 `-m mcp_relay_image_analyzer.server` 运行）；
+> 4. 支持以下两种密钥配置方式之一，加入到 `env` 环境变量中：
+>    - **方式一（免 config.json，推荐用于 ccswitch 等集成工具）**：直接配置环境变量参数：
+>      * `RELAY_URL`：您的多模态中继网关 API 地址（例如：`http://127.0.0.1:18444/v1internal:generateContent`）；
+>      * `RELAY_API_KEY`：您的网关 API 鉴权密钥；
+>      * `RELAY_MODEL`：要调用的视觉分析模型名称（如 `gemini-2.5-flash`）。
+>    - **方式二**：加入 `MCP_IMAGE_ANALYZER_CONFIG` 并指向本项目根目录下的 `config.json` 绝对路径。
 
 ---
 
@@ -75,8 +84,9 @@ claude mcp add relay-image-analyzer python -- -m mcp_relay_image_analyzer.server
 ```
 
 #### 方法 B：手动修改配置文件
-编辑 Windows 用户主目录下的配置文件 `C:\Users\<您的用户名>\.claude.json`，在 `mcpServers` 下加入：
+编辑本地的 Claude 配置文件（Windows 通常在 `C:\Users\<您的用户名>\.claude.json`，macOS 在 `~/.claude.json`），在 `mcpServers` 下加入对应平台的配置：
 
+* **Windows 平台：**
 ```json
 {
   "mcpServers": {
@@ -95,23 +105,51 @@ claude mcp add relay-image-analyzer python -- -m mcp_relay_image_analyzer.server
 }
 ```
 
+* **macOS 平台：**
+```json
+{
+  "mcpServers": {
+    "relay-image-analyzer": {
+      "command": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/.venv/bin/python",
+      "args": [
+        "-m",
+        "mcp_relay_image_analyzer.server"
+      ],
+      "cwd": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/src",
+      "env": {
+        "MCP_IMAGE_ANALYZER_CONFIG": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/config.json"
+      }
+    }
+  }
+}
+```
+
 > **注意**：
-> 1. `command` 应指向该项目虚拟环境中的 `python.exe` 路径，防止全局 Python 环境缺失依赖。
-> 2. `cwd` 建议设置为该工程的 `src` 文件夹目录。
+> 1. `command` 应指向该项目虚拟环境中的 Python 路径（Windows 为 `Scripts\\python.exe`，macOS 为 `bin/python`），防止全局 Python 环境缺失依赖。
+> 2. `cwd` 建议设置为该工程的 `src` 文件夹目录的绝对路径。
 > 3. 设置环境变量 `MCP_IMAGE_ANALYZER_CONFIG` 指向你刚刚配置的 `config.json` 绝对路径，确保运行时能正确读取密钥。
 
 ---
 
 ### 2. 集成到 Claude Desktop (桌面客户端)
 
-打开桌面客户端的配置文件（通常在 `C:\Users\<您的用户名>\AppData\Roaming\Claude\claude_desktop_config.json`），向 `mcpServers` 添加相同的配置：
+打开桌面客户端的配置文件：
+* **Windows**：`C:\Users\<您的用户名>\AppData\Roaming\Claude\claude_desktop_config.json`
+* **macOS**：`~/Library/Application Support/Claude/claude_desktop_config.json`
 
+向 `mcpServers` 添加对应平台的配置：
+
+* **Windows 平台：**
 ```json
 {
   "mcpServers": {
     "relay-image-analyzer": {
-      "command": "B:\\GPT\\mcp-relay-image-analyzer\\.venv\\Scripts\\mcp-relay-image-analyzer.exe",
-      "args": [],
+      "command": "B:\\GPT\\mcp-relay-image-analyzer\\.venv\\Scripts\\python.exe",
+      "args": [
+        "-m",
+        "mcp_relay_image_analyzer.server"
+      ],
+      "cwd": "B:\\GPT\\mcp-relay-image-analyzer\\src",
       "env": {
         "MCP_IMAGE_ANALYZER_CONFIG": "B:\\GPT\\mcp-relay-image-analyzer\\config.json"
       }
@@ -119,6 +157,76 @@ claude mcp add relay-image-analyzer python -- -m mcp_relay_image_analyzer.server
   }
 }
 ```
+
+* **macOS 平台：**
+```json
+{
+  "mcpServers": {
+    "relay-image-analyzer": {
+      "command": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/.venv/bin/python",
+      "args": [
+        "-m",
+        "mcp_relay_image_analyzer.server"
+      ],
+      "cwd": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/src",
+      "env": {
+        "MCP_IMAGE_ANALYZER_CONFIG": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/config.json"
+      }
+    }
+  }
+}
+```
+*(注：如果使用的是打包编译后的可执行文件，则 `command` 指向对应的可执行文件，且无需配 `args` 与 `cwd`)*
+
+---
+
+### 3. 集成到 ccswitch 等一键管理工具
+
+在 `ccswitch`（或类似 AI 辅助管理工具）的 MCP 配置界面中，你可以直接通过配置环境变量来避免手动编辑本地的 `config.json` 文件。请根据您的操作系统，复制对应的 JSON 配置并修改其中绝对路径：
+
+* **Windows 平台 JSON 配置：**
+```json
+{
+  "type": "stdio",
+  "command": "B:\\GPT\\mcp-relay-image-analyzer\\.venv\\Scripts\\python.exe",
+  "args": [
+    "-m",
+    "mcp_relay_image_analyzer.server"
+  ],
+  "cwd": "B:\\GPT\\mcp-relay-image-analyzer\\src",
+  "env": {
+    "RELAY_URL": "http://127.0.0.1:18444/v1internal:generateContent",
+    "RELAY_API_KEY": "YOUR_RELAY_API_KEY_HERE",
+    "RELAY_MODEL": "gemini-2.5-flash"
+  }
+}
+```
+
+* **macOS 平台 JSON 配置：**
+```json
+{
+  "type": "stdio",
+  "command": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/.venv/bin/python",
+  "args": [
+    "-m",
+    "mcp_relay_image_analyzer.server"
+  ],
+  "cwd": "/Users/YOUR_USERNAME/path/to/mcp-relay-image-analyzer/src",
+  "env": {
+    "RELAY_URL": "http://127.0.0.1:18444/v1internal:generateContent",
+    "RELAY_API_KEY": "YOUR_RELAY_API_KEY_HERE",
+    "RELAY_MODEL": "gemini-2.5-flash"
+  }
+}
+```
+
+> **注意**：
+> 1. `command` 应指向该项目虚拟环境中的 Python 路径（Windows 为 `Scripts\\python.exe`，macOS 为 `bin/python`）。
+> 2. `cwd` 设置为该工程的 `src` 文件夹目录。
+> 3. 在 `env` 环境参数中：
+>    * `RELAY_URL`：指定多模态网关 API 接口。
+>    * `RELAY_API_KEY`：指定中继网关的 API 鉴权 Key。
+>    * `RELAY_MODEL`：指定具体调用的视觉/多模态模型名称（例如 `gemini-2.5-flash`）。
 
 ---
 

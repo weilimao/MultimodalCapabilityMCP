@@ -610,9 +610,12 @@ def run_gateway():
                     pass
 
     # 默认监听本地 18449 端口作为重写网关
-    server = HTTPServer(('127.0.0.1', 18449), GatewayHandler)
-    print("MCP Multimodal Gateway running on http://127.0.0.1:18449", file=sys.stderr)
-    server.serve_forever()
+    try:
+        server = HTTPServer(('127.0.0.1', 18449), GatewayHandler)
+        print("MCP Multimodal Gateway running on http://127.0.0.1:18449", file=sys.stderr)
+        server.serve_forever()
+    except Exception as e:
+        print(f"MCP Multimodal Gateway port 18449 is already in use, skipping gateway server start: {e}", file=sys.stderr)
 
 def setup_system_env():
     """检测当前平台，若是 Windows 且未配置代理基址环境变量，则自动使用 setx 写入用户环境变量"""

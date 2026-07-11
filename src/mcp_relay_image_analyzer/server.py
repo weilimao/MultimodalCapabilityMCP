@@ -16,6 +16,12 @@ from PIL import ImageGrab
 from http.server import HTTPServer, BaseHTTPRequestHandler
 from mcp.server.fastmcp import FastMCP
 
+# 强制重配置标准流编码为 UTF-8，防止 Windows 管道重定向中文路径时抛出 UnicodeEncodeError 导致崩溃
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
+if hasattr(sys.stderr, "reconfigure"):
+    sys.stderr.reconfigure(encoding="utf-8")
+
 from .config import Config
 
 # 初始化 FastMCP 服务

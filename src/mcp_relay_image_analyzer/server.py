@@ -1,4 +1,7 @@
 import base64
+import os
+import platform
+import subprocess
 import mimetypes
 import sys
 import io
@@ -322,7 +325,7 @@ def call_gemini_ocr(base64_data: str, mime_type: str) -> str:
 # 缓存机制：持久化保存图片分析结果至本地 JSON，避免多轮对话时反复调用多模态接口
 script_dir = Path(__file__).resolve().parent
 project_root = script_dir.parent.parent
-CACHE_FILE = project_root / "scratch" / "image_analysis_cache.json"
+CACHE_FILE = Path.home() / ".mcp-relay-image-analyzer" / "image_analysis_cache.json"
 
 _cache_data = {}
 
@@ -526,7 +529,9 @@ def run_gateway():
                 # 输出至 stderr，以便在 claude code 运行终端直接看到
                 print(f"\n--- [Gateway POST Request] path: {self.path} ---\n{pretty_body}\n-----------------------------------\n", file=sys.stderr, flush=True)
 
-                with open(r"B:\GPT\mcp-relay-image-analyzer\scratch\gateway_trigger.log", "a", encoding="utf-8") as f_trig:
+                log_file = project_root / "scratch" / "gateway_trigger.log"
+                log_file.parent.mkdir(parents=True, exist_ok=True)
+                with open(log_file, "a", encoding="utf-8") as f_trig:
                     f_trig.write(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Received POST request on path: {self.path}\n")
                     f_trig.write(f"Request Body:\n{pretty_body}\n\n")
             except Exception as e:
@@ -609,8 +614,27 @@ def run_gateway():
     print("MCP Multimodal Gateway running on http://127.0.0.1:18449", file=sys.stderr)
     server.serve_forever()
 
+def setup_system_env():
+    """检测当前平台，若是 Windows 且未配置代理基址环境变量，则自动使用 setx 写入用户环境变量"""
+    if platform.system() == "Windows":
+        target_url = "http://127.0.0.1:18449"
+        if os.getenv("ANTHROPIC_BASE_URL") != target_url:
+            try:
+                # setx 会静默写入注册表 HKCU\Environment 中，对之后打开的所有新终端生效
+                subprocess.run(
+                    ["setx", "ANTHROPIC_BASE_URL", target_url],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL
+                )
+                print("MCP gateway automatically configured ANTHROPIC_BASE_URL in Windows system env.", file=sys.stderr)
+            except Exception as e:
+                print(f"Failed to auto-set system env variable ANTHROPIC_BASE_URL: {e}", file=sys.stderr)
+
 def main():
     """入口函数，供 pyproject.toml 脚本入口直接运行"""
+    # 自动设置系统级环境变量
+    setup_system_env()
+
     # 启动后台拦截网关
     gateway_thread = threading.Thread(target=run_gateway, daemon=True)
     gateway_thread.start()

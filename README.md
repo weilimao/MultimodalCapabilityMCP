@@ -50,6 +50,28 @@ pip install -r requirements.txt
      "timeout": 60
    }
    ```
+### 3. 本地调试与启动测试 (可选)
+由于本项目是标准的 **Pure Stdio MCP 服务**，日常使用时由客户端自行托管拉起，无需手动常驻前台运行。如果您需要手动测试 Stdio 通信，可以使用以下两种方式之一启动：
+
+* **方式 A（进入 `src` 目录启动）：**
+  ```bash
+  cd src
+  python -m mcp_relay_image_analyzer.server
+  ```
+
+* **方式 B（直接在项目根目录下启动 - 推荐）：**
+  - **Windows CMD 环境下：**
+    ```cmd
+    set PYTHONPATH=src
+    python -m mcp_relay_image_analyzer.server
+    ```
+  - **Windows PowerShell 环境下：**
+    ```powershell
+    $env:PYTHONPATH="src"
+    python -m mcp_relay_image_analyzer.server
+    ```
+
+> **注意**：启动后终端会处于挂起状态（等待标准输入 JSON-RPC 数据），这是正常现象。若需要退出，直接按下 `Ctrl + C` 即可。
 
 ---
 

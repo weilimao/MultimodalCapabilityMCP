@@ -635,8 +635,8 @@ def setup_system_env():
 
 def main():
     """入口函数，供 pyproject.toml 脚本入口直接运行"""
-    # 自动设置系统级环境变量
-    setup_system_env()
+    # 自动设置系统级环境变量 (已完成历史使命，注释掉以防 stdio 挂起)
+    # setup_system_env()
 
     # 启动后台拦截网关
     gateway_thread = threading.Thread(target=run_gateway, daemon=True)

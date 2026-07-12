@@ -5,18 +5,37 @@ from pathlib import Path
 
 DEFAULT_RELAY_URL = "http://127.0.0.1:18444/v1internal:generateContent"
 DEFAULT_MODEL = "gemini-2.5-flash"
+DEFAULT_FORMAT = "google"
 
 class Config:
     def __init__(self):
-        self.relay_url = os.getenv("RELAY_URL", DEFAULT_RELAY_URL)
-        self.api_key = os.getenv("RELAY_API_KEY", "")
-        self.default_model = os.getenv("RELAY_MODEL", DEFAULT_MODEL)
-        self.timeout = int(os.getenv("RELAY_TIMEOUT", "60"))
-        self.upstream_base_url = os.getenv("UPSTREAM_BASE_URL", "http://127.0.0.1:18444")
+        # ── Step 1: 硬编码默认值 ──────────────────────────────────────────
+        self.relay_url = DEFAULT_RELAY_URL
+        self.api_key = ""
+        self.default_model = DEFAULT_MODEL
+        self.timeout = 60
+        self.upstream_base_url = "http://127.0.0.1:18444"
+        self.relay_format = DEFAULT_FORMAT
+        self.gateway_port = 18449
 
-        # 如果没有通过环境变量设置 API_KEY，则尝试从 config.json 中读取
-        if not self.api_key:
-            self._load_from_file()
+        # ── Step 2: 读取 config.json（覆盖默认值）────────────────────────
+        self._load_from_file()
+
+        # ── Step 3: 环境变量最高优先级（覆盖文件值）──────────────────────
+        if os.getenv("RELAY_URL"):
+            self.relay_url = os.getenv("RELAY_URL")
+        if os.getenv("RELAY_API_KEY"):
+            self.api_key = os.getenv("RELAY_API_KEY")
+        if os.getenv("RELAY_MODEL"):
+            self.default_model = os.getenv("RELAY_MODEL")
+        if os.getenv("RELAY_TIMEOUT"):
+            self.timeout = int(os.getenv("RELAY_TIMEOUT"))
+        if os.getenv("UPSTREAM_BASE_URL"):
+            self.upstream_base_url = os.getenv("UPSTREAM_BASE_URL")
+        if os.getenv("RELAY_FORMAT"):
+            self.relay_format = os.getenv("RELAY_FORMAT").strip().lower()
+        if os.getenv("GATEWAY_PORT"):
+            self.gateway_port = int(os.getenv("GATEWAY_PORT"))
 
     def _load_from_file(self):
         # 寻找 config.json 的候选路径
@@ -49,6 +68,8 @@ class Config:
                         self.default_model = data.get("default_model", self.default_model)
                         self.timeout = data.get("timeout", self.timeout)
                         self.upstream_base_url = data.get("upstream_base_url", self.upstream_base_url)
+                        self.relay_format = data.get("relay_format", self.relay_format).strip().lower()
+                        self.gateway_port = data.get("gateway_port", self.gateway_port)
                         
                         # 只要成功加载了一个存在的 config.json，就打印日志到 stderr 并返回
                         print(f"Loaded config from: {path}", file=sys.stderr)

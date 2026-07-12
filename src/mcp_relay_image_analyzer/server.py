@@ -385,7 +385,11 @@ def analyze_clipboard_image(
             
         max_size = 1024
         if img.width > max_size or img.height > max_size:
-            img.thumbnail((max_size, max_size), getattr(Image.Resampling, 'LANCZOS', Image.ANTIALIAS))
+            try:
+                resample = Image.Resampling.LANCZOS
+            except AttributeError:
+                resample = getattr(Image, 'ANTIALIAS', 1)
+            img.thumbnail((max_size, max_size), resample)
             log_message(f"Clipboard image compressed to {img.width}x{img.height}")
             
         buffered = io.BytesIO()
@@ -421,7 +425,11 @@ def call_gemini_ocr(base64_data: str, mime_type: str) -> str:
             # 自适应限制最大尺寸为 768px
             max_size = 768
             if img.width > max_size or img.height > max_size:
-                img.thumbnail((max_size, max_size), getattr(Image.Resampling, 'LANCZOS', Image.ANTIALIAS))
+                try:
+                    resample = Image.Resampling.LANCZOS
+                except AttributeError:
+                    resample = getattr(Image, 'ANTIALIAS', 1)
+                img.thumbnail((max_size, max_size), resample)
                 log_message(f"Gateway image auto-compressed to {img.width}x{img.height}")
                 
                 buffer = io.BytesIO()

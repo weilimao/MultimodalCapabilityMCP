@@ -97,6 +97,7 @@ def _send_multimodal_request(img_base64: str, mime_type: str, prompt: str, targe
         }
         payload = {
             "model": target_model,
+            "max_tokens": 800,
             "messages": [
                 {
                     "role": "user",

@@ -13,7 +13,7 @@ class Config:
         self.relay_url = DEFAULT_RELAY_URL
         self.api_key = ""
         self.default_model = DEFAULT_MODEL
-        self.timeout = 60
+        self.timeout = 180
         self.upstream_base_url = "http://127.0.0.1:18444"
         self.relay_format = DEFAULT_FORMAT
         self.gateway_port = 18449

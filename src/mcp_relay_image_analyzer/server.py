@@ -145,25 +145,36 @@ def _send_multimodal_request(img_base64: str, mime_type: str, prompt: str, targe
             "Authorization": f"Bearer {config.api_key}",
             "Content-Type": "application/json"
         }
-        payload = {
-            "model": target_model,
-            "request": {
-                "contents": [
+        
+        contents_payload = [
+            {
+                "role": "user",
+                "parts": [
+                    {"text": prompt},
                     {
-                        "role": "user",
-                        "parts": [
-                            {"text": prompt},
-                            {
-                                "inlineData": {
-                                    "mimeType": mime_type,
-                                    "data": img_base64
-                                }
-                            }
-                        ]
+                        "inlineData": {
+                            "mimeType": mime_type,
+                            "data": img_base64
+                        }
                     }
                 ]
             }
-        }
+        ]
+        
+        if "/v1internal:generateContent" in config.relay_url:
+            payload = {
+                "model": target_model,
+                "request": {
+                    "contents": contents_payload
+                }
+            }
+        else:
+            payload = {
+                "contents": contents_payload,
+                "generationConfig": {
+                    "maxOutputTokens": 1024
+                }
+            }
         
     url = _build_final_url(config.relay_url, fmt)
     log_message(f"Sending request to relay: {url} using model: {target_model} (Format: {fmt})")

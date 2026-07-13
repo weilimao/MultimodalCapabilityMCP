@@ -97,6 +97,54 @@ class TestServerMultimodal(unittest.TestCase):
         self.assertEqual(payload["request"]["contents"][0]["parts"][1]["inlineData"]["data"], "fake_base64_data")
 
     @patch("requests.post")
+    def test_send_multimodal_request_google_standard_success(self, mock_post):
+        # 1b. 模拟标准的 Google Gemini API 成功响应（没有 /v1internal 路径）
+        server.config.relay_format = "google"
+        server.config.relay_url = "https://generativelanguage.googleapis.com/v1beta/models"
+
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {
+            "response": {
+                "candidates": [
+                    {
+                        "content": {
+                            "parts": [
+                                {
+                                    "text": "这是由标准 Google Gemini 返回的图像分析结果。"
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+        mock_post.return_value = mock_response
+
+        # 执行请求
+        result = server._send_multimodal_request(
+            img_base64="fake_base64_data",
+            mime_type="image/png",
+            prompt="分析此图",
+            target_model="gemini-2.5-flash"
+        )
+
+        self.assertEqual(result, "这是由标准 Google Gemini 返回的图像分析结果。")
+        mock_post.assert_called_once()
+        
+        # 验证 Payload 和 Headers
+        args, kwargs = mock_post.call_args
+        self.assertEqual(args[0], "https://generativelanguage.googleapis.com/v1beta/models")
+        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer test_api_key")
+        payload = kwargs["json"]
+        # 验证符合标准 Google 协议结构（平铺 contents 且无 request 外层嵌套）
+        self.assertNotIn("request", payload)
+        self.assertIn("contents", payload)
+        self.assertEqual(payload["contents"][0]["parts"][0]["text"], "分析此图")
+        self.assertEqual(payload["contents"][0]["parts"][1]["inlineData"]["data"], "fake_base64_data")
+        self.assertEqual(payload["generationConfig"]["maxOutputTokens"], 1024)
+
+    @patch("requests.post")
     def test_send_multimodal_request_openai_success(self, mock_post):
         # 2. 模拟 OpenAI/火山引擎 接口的成功响应，输入仅使用 Base URL，验证自适应补全功能
         server.config.relay_format = "openai"
